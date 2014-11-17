@@ -11,7 +11,7 @@
 
 class Room {
 public:
-    std::vector<Wall> walls;
+    std::vector<Wall*> walls;
 
     void createGeometry(std::vector<glm::vec3>& positions, std::vector<unsigned short>& indices);
 };

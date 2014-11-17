@@ -6,8 +6,8 @@ project "PlanFloor"
   kind "ConsoleApp"
   language "C++"
   files    { "src/**.h","src/**.cpp" }
-  includedirs { "src", "../kick/libs/include", "../kick/src" }
-  buildoptions "-std=c++1y -stdlib=libc++ -fno-exceptions"
+  includedirs { "src", "../kick/libs/include", "../kick/src", "/Users/morten/Programmering/cpp/boost_1_57_0" }
+  buildoptions "-std=c++1y -stdlib=libc++"
   links { "Cocoa.framework", "GLUT.framework", "OpenGL.framework", "/Library/Frameworks/SDL2.framework", "/Library/Frameworks/SDL2_image.framework" }
 
   buildoptions { "-F/Library/Frameworks/" }

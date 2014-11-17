@@ -6,12 +6,10 @@
 
 using namespace glm;
 
+Rnd BuildingFactory::rnd;
+
 Building BuildingFactory::CreateBuilding() {
-    Building building;
-    building.rooms.emplace_back();
-    building.rooms.back().walls.emplace_back(vec2{-25,-25},vec2{-25,25});
-    building.rooms.back().walls.emplace_back(vec2{-25,25},vec2{25,25});
-    building.rooms.back().walls.emplace_back(vec2{25,25},vec2{25,-25});
-    building.rooms.back().walls.emplace_back(vec2{25,-25},vec2{-25,-25});
+    Building building{&rnd};
+    building.build();
     return building;
 }

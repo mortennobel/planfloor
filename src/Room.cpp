@@ -6,6 +6,6 @@
 
 void Room::createGeometry(std::vector<glm::vec3>& positions, std::vector<unsigned short>& indices) {
     for (auto & w : walls){
-        w.createGeometry(positions, indices);
+        w->createGeometry(positions, indices);
     }
 }

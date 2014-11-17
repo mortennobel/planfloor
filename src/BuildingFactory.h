@@ -9,6 +9,7 @@
 
 
 class BuildingFactory {
+    static Rnd rnd;
 public:
     static Building CreateBuilding();
 };

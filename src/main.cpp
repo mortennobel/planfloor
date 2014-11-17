@@ -10,6 +10,7 @@
 
 #include "kick/kick.h"
 #import "BuildingFactory.h"
+#import "ColorScheme.h"
 
 using namespace kick;
 
@@ -18,7 +19,7 @@ int main(int argc, char * argv[])
     Engine::init(argc, argv);
     auto scene = Engine::activeScene();
     auto camera = scene->createOrthographicCamera();
-    scene->createSphere()->transform()->setLocalScale({20,20,20});
+    camera->setClearColor(ColorScheme::backgroundColor);
 
     scene->createDirectionalLight();
 
@@ -32,6 +33,7 @@ int main(int argc, char * argv[])
     meshData.recomputeNormals();
 
         auto gameObject = scene->createGameObject("Building");
+    gameObject->transform()->setLocalScale({0.2f,0.2f,0.2f});
         MeshRenderer *meshRenderer = gameObject->addComponent<MeshRenderer>();
         Mesh* mesh = new Mesh();
         mesh->setMeshData(&meshData);
@@ -39,6 +41,7 @@ int main(int argc, char * argv[])
 
         auto shader = Project::loadShader("assets/shaders/unlit.shader");
         Material* mat = new Material();
+    mat->setUniform("mainColor", ColorScheme::wallColor);
         mat->setShader(shader);
         meshRenderer->setMaterial(mat);
 
