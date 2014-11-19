@@ -15,12 +15,12 @@ for (var i=2;i<process.argv.length;i++){
 }
 
 var project = {
-    "options": [(target=="debug"?"-O0":"-O3"), "-Werror"/*, "-s USE_SDL=2"*/],
-    "buildoptions": ["-std=c++11", "-stdlib=libc++", "-fno-exceptions"],
+    "options": [(target=="debug"?"-O0":"-O3"), "-Werror"/*, "-s USE_SDL=2"*/,"-s DISABLE_EXCEPTION_CATCHING=0"],
+    "buildoptions": ["-std=c++11", "-stdlib=libc++"/*, "-fno-exceptions"*/],
     "defines": ["GLM_FORCE_RADIANS",(target=="debug"?"DEBUG":"NDEBUG")],
     "targetdir": "../planfloor-pages",
     "target": "index.html",
-    "includedirs": [ "../kick/src", "../kick/libs/include" ,"./src"],
+    "includedirs": [ "../kick/src", "../kick/libs/include" ,"./src", "../boost_1_57_0"],
 	"files":[ {
             "root":"../kick/",
             "filter":"src/.*\\.cpp"

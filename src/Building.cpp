@@ -56,13 +56,21 @@ void Building::subdivide() {
         cut();
     }
 }
+glm::vec3 Building::findSplitPoint(const Halfedge* edge){
+    vec3 direction =(edge->vert->position - edge->prev->vert->position);
+    float length = glm::length(direction);
+    assert (length >= 2*Parameters::minimumWallLength);
+    float offset = Parameters::minimumWallLength+rnd->nextInt(0, (int)(floor( (length- 2*Parameters::minimumWallLength)/10)))*10;
+    vec3 offsetPos = (direction * (offset / length));
+    return edge->prev->vert->position + offsetPos;
+}
 
-kick::Ray edgeToRay(Halfedge* edge, bool ortho){
-    vec3 direction = (edge->vert->position - edge->prev->vert->position);
-    if (ortho){
-        direction = cross(vec3{0,0,1}, direction);
-    }
-    return kick::Ray {(edge->prev->vert->position + edge->vert->position)*0.5f, direction};
+kick::Ray Building::edgeToRay(const Halfedge* edge, float rotateZ){
+    vec3 direction = edge->vert->position - edge->prev->vert->position;
+
+    direction = glm::rotateZ(direction, rotateZ);
+
+    return kick::Ray {edge->prev->vert->position, direction};
 }
 
 void Building::split() {
@@ -77,8 +85,14 @@ void Building::split() {
         return;
     }
 
-    kick::Ray edgeDirection = edgeToRay(edge, true);
-
+    float rotation;
+    if (rnd->next() < Parameters::splitRoomChange){
+        rotation = rnd->next()>0.5f?M_PI_4:3*M_PI_4;
+    } else {
+        rotation = M_PI_2;
+    }
+    kick::Ray edgeDirection = edgeToRay(edge, rotation);
+    edgeDirection.setOrigin(findSplitPoint(edge));
 
 
     Halfedge* otherEdge = nullptr;
@@ -87,7 +101,7 @@ void Building::split() {
         if (e == edge){
             continue;
         }
-        kick::Ray otherEdgeDirection = edgeToRay(e,false);
+        kick::Ray otherEdgeDirection = edgeToRay(e,0);
         vec3 point1, point2;
         if (edgeDirection.closestPoints(otherEdgeDirection, point1, point2)){
             if (length2(point1 - point2) < 0.1){
@@ -109,7 +123,14 @@ void Building::split() {
         v1->position = edgeDirection.origin();
         Vertex* v2 = otherEdge->split();
         v2->position = otherPoint;
-        edge->face->connect(v1,v2);
+        Face* newFace = edge->face->connect(v1,v2);
+
+        if (face->area() < Parameters::minimumRoomArea){
+            cout << "face is only "<<face->area()<<endl;
+        }
+        if ( newFace->area() < Parameters::minimumRoomArea ){
+            cout << "face is only "<<newFace->area()<<endl;
+        }
     }
 }
 

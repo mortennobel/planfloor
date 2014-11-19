@@ -28,6 +28,8 @@ public:
 
     bool isValid();
 
+    float area();
+
     Halfedge* halfedge = nullptr;
 
     Face* connect(Vertex *pVertex, Vertex *pVertex1);

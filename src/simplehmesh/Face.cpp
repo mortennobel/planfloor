@@ -162,6 +162,21 @@ Face* Face::connect(Vertex *pVertex1, Vertex *pVertex2) {
     return newFace;
 }
 
+float Face::area(){
+    float  area=0.0f ;
+    // inspired by http://paulbourke.net/geometry/polygonmesh/source1.c
+    for (auto  he : circulate()){
+        auto lastHe = he->prev;
+        glm::vec3 hePos = he->vert->position;
+        glm::vec3 heLastPos = lastHe->vert->position;
+        area += hePos.x * heLastPos.y;
+        area -= hePos.y * heLastPos.x;
+    }
+
+    area /= 2;
+    return(area < 0 ? -area : area);
+}
+
 std::ostream &operator<<(std::ostream& os, Face *dt) {
 #ifdef DEBUG
     os << "Face{ id: "<< dt->id<<",he:"<< (dt->halfedge?dt->halfedge->id:-1) <<"}";

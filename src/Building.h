@@ -7,7 +7,7 @@
 
 #include "Room.h"
 #import "Rnd.h"
-#include "HMesh.h"
+#include "simplehmesh/HMesh.h"
 
 class Building {
     Rnd *rnd;
@@ -40,6 +40,9 @@ private:
 
     // return true if the a new wall intersect the any of the existing lines
     bool intersect(Wall* wall);
+
+    kick::Ray edgeToRay(const Halfedge* edge, float rotateZ=0);
+    glm::vec3 findSplitPoint(const Halfedge* edge);
 
     void convertHMeshToRooms();
 };

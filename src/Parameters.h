@@ -10,7 +10,10 @@ class Parameters {
 public:
     // change that room
     static float splitRoomChange;
+    static float splitRotateChange;
+    static float minimumRoomArea;
     static float minimumWallLength;
+
 };
 
 
