@@ -20,19 +20,22 @@ public:
     Face(const Face&) = delete;
     ~Face();
     int edgeCount();
-    std::vector<Halfedge*> circulate();
+    std::vector<Halfedge*> circulate() const;
 
     void reassignFaceToEdgeLoop();
 
     Vertex* split();
 
-    bool isValid();
+    // split face around a single vertex (connecting edges to its neighbors)
+    Vertex* split(Vertex* vertex);
+
+    bool isValid() const;
 
     float area();
 
     Halfedge* halfedge = nullptr;
 
-    Face* connect(Vertex *pVertex, Vertex *pVertex1);
+    Halfedge* connect(Vertex *pVertex, Vertex *pVertex1);
 #ifdef DEBUG
     int id;
 #endif

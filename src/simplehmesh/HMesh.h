@@ -40,6 +40,7 @@ public:
     Vertex* vertex(int id);
     Halfedge* halfedge(int id);
     Face* face(int id);
+    bool isValid();
 private:
     boost::container::stable_vector<Vertex> mVertex;
     boost::container::stable_vector<Halfedge> mHalfedge;
@@ -47,6 +48,12 @@ private:
     void destroy(Vertex* v);
     void destroy(Halfedge* he);
     void destroy(Face* v);
+    bool isUnused(const Vertex* v);
+    bool isUnused(const Halfedge* v);
+    bool isUnused(const Face* v);
+    bool existsOrNull(const Vertex *v);
+    bool existsOrNull(const Halfedge *v);
+    bool existsOrNull(const Face *v);
     friend class Vertex;
     friend class Halfedge;
     friend class Face;

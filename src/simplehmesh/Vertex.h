@@ -33,10 +33,16 @@ public:
 
     std::vector<Halfedge*> circulateOneRing();
 
-    bool isValid();
+    // dissolves a vertex. Note the vertex must only have two outgoing edges.
+    void dissolve();
+
+    bool isValid() const;
 #ifdef DEBUG
     int id;
 #endif
+
+
+
 private:
 
 

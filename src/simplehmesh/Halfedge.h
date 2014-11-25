@@ -40,20 +40,28 @@ public:
 
     void glue(Halfedge* oppEdge);
 
-    bool isValid();
+    bool isValid() const;
     float length();
+    // return direction of the edge (not normalized)
+    glm::vec3 direction();
 #ifdef DEBUG
     int id;
 #endif
+
+    void dissolve();
+
+    bool isValidEdgeLoop();
 private:
 
 
     HMesh* hMesh;
 
     void collapseInternal(bool opp);
-    Halfedge* splitInternal(Vertex* vertex);
+
 
     friend class HMesh;
+
+    Halfedge *splitInternal(Vertex *vertex);
 };
 
 

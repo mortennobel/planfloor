@@ -35,7 +35,7 @@ int Face::edgeCount() {
     return count;
 }
 
-std::vector<Halfedge *> Face::circulate() {
+std::vector<Halfedge *> Face::circulate()  const {
     std::vector<Halfedge *> res;
     Halfedge *iter = halfedge;
     bool first = true;
@@ -93,20 +93,18 @@ Vertex *Face::split() {
             reassignFaceToEdgeLoop();
         }
 
-        Halfedge *toNewVertex = hMesh->createHalfedge();
-        Halfedge *fromNewVertex = hMesh->createHalfedge();
-        toNewVertex->glue(fromNewVertex);
-
         first = false;
         count++;
     }
 
     v->position = v->position * (1.0f/count);
 
+    assert(hMesh->isValid());
+
     return v;
 }
 
-bool Face::isValid() {
+bool Face::isValid()  const{
     bool valid = true;
     if (halfedge == nullptr){
         cerr << "Halfedge is null"<<endl;
@@ -118,10 +116,13 @@ bool Face::isValid() {
             valid = false;
         }
     }
+    if (valid){
+        valid = hMesh->existsOrNull(this) && hMesh->existsOrNull(this->halfedge);
+    }
     return valid;
 }
 
-Face* Face::connect(Vertex *pVertex1, Vertex *pVertex2) {
+Halfedge* Face::connect(Vertex *pVertex1, Vertex *pVertex2) {
     assert( edgeCount() > 3);
     Halfedge* he1 = nullptr;
     Halfedge* he2 = nullptr;
@@ -159,7 +160,9 @@ Face* Face::connect(Vertex *pVertex1, Vertex *pVertex2) {
     this->halfedge = splitEdge2;
     reassignFaceToEdgeLoop();
 
-    return newFace;
+    assert(hMesh->isValid());
+
+    return splitEdge1;
 }
 
 float Face::area(){
@@ -184,4 +187,62 @@ std::ostream &operator<<(std::ostream& os, Face *dt) {
     os << "Face{ id: "<< (void*)dt<<",he:"<< (void*)dt->halfedge<<"}";
 #endif
     return os;
+}
+
+Vertex *Face::split(Vertex *vertex) {
+    assert(edgeCount()>3); // only make sence with polygons of 4 or more edges
+    Halfedge* prevHe = nullptr;
+    for (auto he: circulate()){
+        if (he->vert == vertex){
+            prevHe = he;
+            break;
+        }
+    }
+    assert(prevHe);
+    if (!prevHe){
+        return nullptr;
+    }
+    Halfedge* prevPrevHe = prevHe->prev;
+    Halfedge* nextHe = prevHe->next;
+    Halfedge* nextNextHe = nextHe->next;
+    Vertex *fromVertex = prevPrevHe->vert;
+    Vertex *toVertex = nextHe->vert;
+
+    // new vertex
+    Vertex* newVertex = hMesh->createVertex();
+    Halfedge* newPrevHe1 = hMesh->createHalfedge();
+    Halfedge* newPrevHe2 = hMesh->createHalfedge();
+    Halfedge* newNextHe1 = hMesh->createHalfedge();
+    Halfedge* newNextHe2 = hMesh->createHalfedge();
+
+    Face* newFace = hMesh->createFace();
+
+    // link HEs
+    prevPrevHe->link(newPrevHe1);
+    newPrevHe1->link(newNextHe1);
+    newNextHe1->link(nextNextHe);
+
+    nextHe->link(newNextHe2);
+    newNextHe2->link(newPrevHe2);
+    newPrevHe2->link(prevHe);
+
+    newPrevHe1->glue(newPrevHe2);
+    newNextHe1->glue(newNextHe2);
+
+    // link vertices
+    newPrevHe1->link(newVertex);
+    newNextHe1->link(toVertex);
+    newNextHe2->link(newVertex);
+    newPrevHe2->link(fromVertex);
+
+    // link faces
+    newFace->halfedge = newPrevHe2;
+    newFace->reassignFaceToEdgeLoop();
+
+    halfedge =  newPrevHe1;
+    reassignFaceToEdgeLoop();
+
+    hMesh->isValid();
+
+    return newVertex;
 }

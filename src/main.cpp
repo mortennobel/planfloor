@@ -11,6 +11,7 @@
 #include "kick/kick.h"
 #import "BuildingFactory.h"
 #import "ColorScheme.h"
+#import "BuildingComponent.h"
 
 using namespace kick;
 
@@ -23,28 +24,24 @@ int main(int argc, char * argv[])
 
     scene->createDirectionalLight();
 
-    kick::MeshData meshData;
-    std::vector<glm::vec3> positions;
-    std::vector<unsigned short> indices;
-    BuildingFactory::CreateBuilding().createGeometry(positions,indices);
-    meshData.setPosition(positions);
-    meshData.setSubmesh(0,indices, MeshType::Triangles);
-    meshData.recomputeBounds();
-    meshData.recomputeNormals();
-
-        auto gameObject = scene->createGameObject("Building");
+    auto gameObject = scene->createGameObject("Building");
     gameObject->transform()->setLocalScale({0.2f,0.2f,0.2f});
-        MeshRenderer *meshRenderer = gameObject->addComponent<MeshRenderer>();
-        Mesh* mesh = new Mesh();
-        mesh->setMeshData(&meshData);
-        meshRenderer->setMesh(mesh);
+    MeshRenderer *meshRenderer = gameObject->addComponent<MeshRenderer>();
+    Mesh* mesh = new Mesh();
+    gameObject->addComponent<BuildingComponent>(mesh);
+    meshRenderer->setMesh(mesh);
 
-        auto shader = Project::loadShader("assets/shaders/unlit.shader");
-        Material* mat = new Material();
+    auto shader = Project::loadShader("assets/shaders/unlit.shader");
+    Material* mat = new Material();
     mat->setUniform("mainColor", ColorScheme::wallColor);
-        mat->setShader(shader);
-        meshRenderer->setMaterial(mat);
+    mat->setShader(shader);
+    meshRenderer->setMaterial(mat);
 
+    auto cube = scene->createCube();
+    cube->transform()->setLocalScale({100.0f/2,100.0f/2,1.0f});
+    cube->transform()->setLocalPosition({300,-250,0});
+
+    cube->setMaterial(mat);
 
     Engine::startMainLoop();
 

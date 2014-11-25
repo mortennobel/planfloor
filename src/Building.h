@@ -45,6 +45,8 @@ private:
     glm::vec3 findSplitPoint(const Halfedge* edge);
 
     void convertHMeshToRooms();
+
+    Halfedge *findRandomEdge();
 };
 
 

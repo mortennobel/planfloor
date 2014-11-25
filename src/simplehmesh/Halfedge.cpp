@@ -33,8 +33,9 @@ Vertex* Halfedge::collapse(bool center){
         opp->collapseInternal(true);
         hMesh->destroy(opp);
     }
-    hMesh->destroy(this);
 
+    hMesh->destroy(this);
+    assert(vert->halfedge->hMesh->isValid());
     return vert;
 }
 
@@ -54,23 +55,6 @@ void Halfedge::collapseInternal(bool opp){
     hMesh->destroy(face);
 }
 
-Halfedge* Halfedge::splitInternal(Vertex* vertex){
-    Halfedge* oldPrev = prev;
-
-    Halfedge* newPrev = hMesh->createHalfedge();
-
-    // Link halfedges
-    oldPrev->link(newPrev);
-    newPrev->link(this);
-
-    // Link vertices
-    newPrev->link(vertex);
-
-    newPrev->link(face);
-
-    return newPrev;
-}
-
 void Halfedge::flip() {
     if (isBoundary()){
         assert(false);//("Cannot flip boundary edge");
@@ -84,8 +68,6 @@ void Halfedge::flip() {
     Halfedge* oldOppNext = opp->next;
     Halfedge* oldOppPrev = opp->prev;
 
-    Vertex* thisVert = vert;
-    Vertex* oppVert = opp->vert;
     Vertex* thisOppositeVert = next->vert;
     Vertex* oppOppositeVert = opp->next->vert;
 
@@ -104,6 +86,7 @@ void Halfedge::flip() {
 
     face->reassignFaceToEdgeLoop();
     opp->face->reassignFaceToEdgeLoop();
+    assert(hMesh->isValid());
 }
 
 Vertex* Halfedge::split(){
@@ -112,11 +95,69 @@ Vertex* Halfedge::split(){
     Halfedge* newHE = splitInternal(vertex);
     if (opp != nullptr){
         Halfedge* newOppHE = opp->splitInternal(vertex);
+
         newHE->glue(opp);
         this->glue(newOppHE);
     }
-    newHE->isValid();
+    assert(hMesh->isValid());
+
     return vertex;
+}
+
+
+Halfedge* Halfedge::splitInternal(Vertex* newVertex){
+    Halfedge* oldPrev = prev;
+
+    Halfedge* newPrev = hMesh->createHalfedge();
+
+    // Link halfedges
+    oldPrev->link(newPrev);
+    newPrev->link(this);
+
+    // Link vertices
+    newPrev->link(newVertex);
+    oldPrev->link(oldPrev->vert);
+
+    newPrev->link(face);
+
+
+    return newPrev;
+}
+
+bool Halfedge::isValidEdgeLoop(){
+    int count;
+    Halfedge *he = this;
+
+    while (he!=this || count == 0){
+        he = he->next;
+        count++;
+        if (he->face != face){
+            return false;
+        }
+        if (!he){
+            return false;
+        }
+        if (count == 10000){
+            return false;
+        }
+    }
+
+    count = 0;
+    while (he!=this || count == 0 ){
+        he = he->prev;
+
+        count++;
+        if (he->face != face){
+            return false;
+        }
+        if (!he){
+            return false;
+        }
+        if (count == 10000){
+            return false;
+        }
+    }
+    return true;
 }
 
 void Halfedge::link(Halfedge* nextEdge) {
@@ -139,7 +180,7 @@ void Halfedge::link(Vertex* vertex){
 }
 
 bool Halfedge::isBoundary() {
-    return opp== nullptr;
+    return opp == nullptr;
 }
 
 void Halfedge::glue(Halfedge* oppEdge) {
@@ -150,7 +191,7 @@ void Halfedge::glue(Halfedge* oppEdge) {
     oppEdge->opp = this;
 }
 
-bool Halfedge::isValid() {
+bool Halfedge::isValid() const {
     bool valid = true;
     if (opp != nullptr && opp->opp != this){
         assert(false);// ("opp is different from this or null");
@@ -163,6 +204,15 @@ bool Halfedge::isValid() {
     if (next->prev != this){
         assert(false);// ("next.prev is different from this");
         valid = false;
+    }
+    if (valid){
+        valid = hMesh->existsOrNull(this) &&
+                hMesh->existsOrNull(this->vert) &&
+                hMesh->existsOrNull(this->next) &&
+                hMesh->existsOrNull(this->prev) &&
+                hMesh->existsOrNull(this->opp) &&
+                hMesh->existsOrNull(this->face)
+                ;
     }
 
     return valid;
@@ -183,4 +233,30 @@ std::ostream &operator<<(std::ostream& os, Halfedge *dt) {
             <<",opp:"<< (void*)dt->opp<<",vert:"<< (void*)dt->vert<<",face:"<< (void*)dt->face<<"}";
 #endif
     return os;
+}
+
+void Halfedge::dissolve() {
+    assert(this->opp);
+    prev->link(opp->next);
+    opp->prev->link(next);
+
+    prev->link(face);
+    face->reassignFaceToEdgeLoop();
+    auto faceToDelete = opp->face;
+    opp->face = nullptr;
+    hMesh->destroy(faceToDelete);
+    auto oppToDelete = opp;
+    opp = nullptr;
+    hMesh->destroy(oppToDelete);
+    hMesh->destroy(this);
+
+
+    prev->isValid();
+    face->isValid();
+    assert(prev->hMesh->isValid());
+
+}
+
+glm::vec3 Halfedge::direction() {
+    return vert->position - prev->vert->position;
 }

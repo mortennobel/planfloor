@@ -5,6 +5,9 @@
 #include "Rnd.h"
 
 Rnd::Rnd() : e1(rd()) {
+#ifdef DEBUG
+    //e1.seed(2);
+#endif
 }
 
 float Rnd::nextFloat(float min, float maxExcluding) {

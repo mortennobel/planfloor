@@ -6,6 +6,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <glm/gtx/vector_angle.hpp>
 
 using namespace glm;
 using namespace std;
@@ -86,7 +87,7 @@ void Building::split() {
     }
 
     float rotation;
-    if (rnd->next() < Parameters::splitRoomChange){
+    if (rnd->next() < Parameters::splitRotateChange){
         rotation = rnd->next()>0.5f?M_PI_4:3*M_PI_4;
     } else {
         rotation = M_PI_2;
@@ -116,26 +117,81 @@ void Building::split() {
         }
     }
 
-
-
     if (otherEdge){
+        if (length(otherPoint - otherEdge->vert->position) < Parameters::minimumWallLength ||
+                length(otherPoint - otherEdge->prev->vert->position) < Parameters::minimumWallLength){
+            return;
+        }
+
         Vertex* v1 = edge->split();
         v1->position = edgeDirection.origin();
         Vertex* v2 = otherEdge->split();
         v2->position = otherPoint;
-        Face* newFace = edge->face->connect(v1,v2);
+        Halfedge* newHalfedge = edge->face->connect(v1,v2);
 
-        if (face->area() < Parameters::minimumRoomArea){
-            cout << "face is only "<<face->area()<<endl;
-        }
-        if ( newFace->area() < Parameters::minimumRoomArea ){
-            cout << "face is only "<<newFace->area()<<endl;
+        if (face->area() < Parameters::minimumRoomArea ||  newHalfedge->face->area() < Parameters::minimumRoomArea ){
+            newHalfedge->dissolve();
+            v1->dissolve();
+            v2->dissolve();
         }
     }
 }
 
+Halfedge * Building::findRandomEdge() {
+    int randomRoom = rnd->nextInt(0, hmesh.faceCount()-1);
+    Face *face = hmesh.face(randomRoom);
+    Halfedge *edge = face->halfedge;
+    int randomWall = rnd->nextInt(1, face->edgeCount()-1);
+    for (int i=0;i<randomWall;i++){
+        edge = edge->next;
+    }
+    return edge;
+}
+
 void Building::cut() {
 
+
+    Halfedge * edge = findRandomEdge();
+
+    if (edge->face->edgeCount() != 4){
+        return;
+    }
+
+    if (edge->face->area() / 4 < Parameters::minimumRoomArea){
+        return;
+    }
+
+    vec3 centerPos{0};
+    for (auto he: edge->face->circulate()){
+        centerPos += he->vert->position * 0.25f;
+    }
+
+
+    Halfedge * edgeNext = edge->next;
+
+    Vertex *edgeVertex = edge->split();
+    Vertex *edgeNextVertex = edgeNext->split();
+
+    Vertex *centerVertex = edge->face->split(edge->vert);
+    centerVertex->position = centerPos;
+
+    /*// find opposite directed
+    while (abs(angle(normalize(edge->direction()),normalize(edgeNext->direction()))) < 0.1f  ){
+        edgeNext = edge->next;
+    }
+
+    kick::Ray ray = edgeToRay(edge, M_PI/2);
+    kick::Ray rayNext = edgeToRay(edgeNext, M_PI/2);
+
+    vec3 outPoint1, outPoint2;
+
+    if (!ray.closestPoints(rayNext, outPoint1, outPoint2)){
+        return;
+    }
+    if (outPoint1 !=  outPoint2) {
+        return;
+    }
+    */
 }
 
 void Building::doorsAndWindows() {

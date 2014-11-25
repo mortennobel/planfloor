@@ -22,7 +22,8 @@ namespace {
     template<typename T>
     bool eraseElement(boost::container::stable_vector<T> & vector, T* ptr){
         for (auto iter = vector.begin();iter != vector.end();iter++){
-            if (&(*iter) == ptr){
+            T* iterPtr = &(*iter);
+            if (iterPtr == ptr){
                 vector.erase(iter);
                 return true;
             }
@@ -48,14 +49,17 @@ Face *HMesh::createFace() {
 
 void HMesh::destroy(Vertex *v) {
     eraseElement<Vertex>(mVertex, v);
+    v->hMesh = nullptr;
 }
 
 void HMesh::destroy(Halfedge *he) {
     eraseElement<Halfedge>(mHalfedge, he);
+    he->hMesh = nullptr;
 }
 
 void HMesh::destroy(Face *f) {
     eraseElement<Face>(mFace, f);
+    f->hMesh = nullptr;
 }
 
 void HMesh::clear() {
@@ -119,6 +123,7 @@ void HMesh::build(const std::vector<glm::vec3>& vertices, const std::vector<int>
             keyValue.second->glue(iter->second);
         }
     }
+    isValid();
 }
 
 // polygons
@@ -164,6 +169,8 @@ void HMesh::build(const std::vector<glm::vec3>& vertices, const std::vector<std:
             keyValue.second->glue(iter->second);
         }
     }
+
+    isValid();
 }
 
 void HMesh::exportMesh(std::vector<glm::vec3> outVertices, std::vector<int> outIndices){
@@ -243,4 +250,117 @@ Halfedge *HMesh::halfedge(int id) {
 
 Face *HMesh::face(int id) {
     return &(mFace[id]);
+}
+
+bool HMesh::isValid() {
+
+    bool valid = true;
+#ifdef DEBUG
+    for (const auto& f : mFace){
+        valid &= f.isValid();
+        if (isUnused(&f)){
+            cout << "Face "<<f.id<<" unused"<<endl;
+        }
+    }
+    for (const auto& f : mHalfedge){
+        valid &= f.isValid();
+        if (isUnused(&f)){
+            cout << "Halfedge "<<f.id<<" unused"<<endl;
+        }
+    }
+    for (const auto& f : mVertex){
+        valid &= f.isValid();
+        if (isUnused(&f)){
+            cout << "Vertex "<<f.id<<" unused"<<endl;
+        }
+    }
+#endif
+    return valid;
+}
+
+bool HMesh::isUnused(const Vertex* v){
+    for (const auto& f : mHalfedge){
+        if (f.vert == v){
+            return false;
+        }
+    }
+
+    return true;
+}
+bool HMesh::isUnused(const Halfedge* he){
+    for (const auto& f : mFace){
+        if (f.halfedge == he){
+            return false;
+        }
+    }
+    for (const auto& f : mHalfedge){
+        if (f.next == he){
+            return false;
+        }
+        if (f.prev == he){
+            return false;
+        }
+        if (f.opp == he){
+            return false;
+        }
+    }
+    for (const auto& f : mVertex){
+        if (f.halfedge == he){
+            return false;
+        }
+    }
+    return true;
+}
+bool HMesh::isUnused(const Face* f){
+    for (const auto& he : mHalfedge){
+        if (he.face == f){
+            return false;
+        }
+    }
+    return true;
+}
+
+bool HMesh::existsOrNull(const Vertex *v) {
+    if (v== nullptr){
+        return true;
+    }
+    for (const auto& f : mVertex){
+        if (&f == v){
+            return true;
+        }
+    }
+#ifdef DEBUG
+    cout << "Error finding v "<<v->id<<endl;
+#endif
+    return false;
+}
+
+bool HMesh::existsOrNull(const Halfedge *h) {
+    if (h == nullptr){
+        return true;
+    }
+    for (const auto& he : mHalfedge){
+        if (&he == h){
+            return true;
+        }
+    }
+#ifdef DEBUG
+    cout << "Error finding he "<<h->id<<endl;
+#endif
+    return false;
+}
+
+bool HMesh::existsOrNull(const Face *f) {
+    if (f == nullptr){
+        return true;
+    }
+    for (const auto& fIter : mFace){
+        if (&fIter == f){
+            return true;
+        }
+    }
+#ifdef DEBUG
+    cout << "Error finding face "<<f->id<<endl;
+#endif
+    return false;
 }
