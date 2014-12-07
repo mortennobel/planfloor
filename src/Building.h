@@ -6,15 +6,14 @@
 #pragma once
 
 #include "Room.h"
-#import "Rnd.h"
 #include "simplehmesh/HMesh.h"
 
 class Building {
-    Rnd *rnd;
+    kick::Random *rnd;
     HMesh hmesh;
 public:
 
-    Building(Rnd *rnd);
+    Building(kick::Random *rnd);
 
     std::vector<Room> rooms;
 

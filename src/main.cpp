@@ -27,7 +27,7 @@ int main(int argc, char * argv[])
     auto gameObject = scene->createGameObject("Building");
     gameObject->transform()->setLocalScale({0.2f,0.2f,0.2f});
     MeshRenderer *meshRenderer = gameObject->addComponent<MeshRenderer>();
-    Mesh* mesh = new Mesh();
+    auto mesh = std::make_shared<Mesh>();
     gameObject->addComponent<BuildingComponent>(mesh);
     meshRenderer->setMesh(mesh);
 
@@ -40,8 +40,8 @@ int main(int argc, char * argv[])
     auto cube = scene->createCube();
     cube->transform()->setLocalScale({100.0f/2,100.0f/2,1.0f});
     cube->transform()->setLocalPosition({300,-250,0});
-
     cube->setMaterial(mat);
+
 
     Engine::startMainLoop();
 

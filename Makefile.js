@@ -15,7 +15,7 @@ for (var i=2;i<process.argv.length;i++){
 }
 
 var project = {
-    "options": [(target=="debug"?"-O0":"-O3"), "-Werror"/*, "-s USE_SDL=2"*/,"-s DISABLE_EXCEPTION_CATCHING=0"],
+    "options": [(target=="debug"?"-O0":"-O3"), "-Werror"/*, "-s USE_SDL=2","-s DISABLE_EXCEPTION_CATCHING=0", "-s ASSERTIONS=1"*/],
     "buildoptions": ["-std=c++11", "-stdlib=libc++"/*, "-fno-exceptions"*/],
     "defines": ["GLM_FORCE_RADIANS",(target=="debug"?"DEBUG":"NDEBUG")],
     "targetdir": "../planfloor-pages",

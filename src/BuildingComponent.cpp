@@ -13,16 +13,17 @@ void BuildingComponent::update() {
     if (MouseInput::down(0)){
         updateMesh();
     }
+
 }
 
 void BuildingComponent::updateMesh() {
-    kick::MeshData meshData;
+    auto meshData = make_shared<MeshData>();
     std::vector<glm::vec3> positions;
     std::vector<unsigned short> indices;
     BuildingFactory::CreateBuilding().createGeometry(positions,indices);
-    meshData.setPosition(positions);
-    meshData.setSubmesh(0,indices, MeshType::Triangles);
-    meshData.recomputeBounds();
-    meshData.recomputeNormals();
-    mesh->setMeshData(&meshData);
+    meshData->setPosition(positions);
+    meshData->setSubmesh(0,indices, MeshType::Triangles);
+    meshData->recomputeBounds();
+    meshData->recomputeNormals();
+    mesh->setMeshData(meshData);
 }

@@ -13,7 +13,7 @@ using namespace std;
 
 //
 // Created by morten on 13/11/14.
-Building::Building(Rnd *rnd) : rnd(rnd) {
+Building::Building(kick::Random *rnd) : rnd(rnd) {
 }
 
 void Building::createGeometry(std::vector<glm::vec3>& positions, std::vector<unsigned short>& indices) {

@@ -6,7 +6,7 @@
 
 using namespace glm;
 
-Rnd BuildingFactory::rnd;
+kick::Random BuildingFactory::rnd;
 
 Building BuildingFactory::CreateBuilding() {
     Building building{&rnd};

@@ -9,7 +9,7 @@
 
 
 class BuildingFactory {
-    static Rnd rnd;
+    static kick::Random rnd;
 public:
     static Building CreateBuilding();
 };
