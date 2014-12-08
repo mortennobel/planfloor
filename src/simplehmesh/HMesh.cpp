@@ -218,11 +218,12 @@ void HMesh::printDebug() {
 
 const std::vector<Halfedge *> HMesh::halfedgesSingleSide() {
     std::vector<Halfedge*> res;
-    std::set<Halfedge*> oppUsed;
+
     for (Halfedge & he : mHalfedge){
-        if (he.opp == nullptr || oppUsed.find(he.opp) == oppUsed.end()){
+        // always select the largest (in terms of pointer address).
+        // Note that opp may be nullptr
+        if (he.opp < &he ){
             res.push_back(&he);
-            oppUsed.insert(&he);
         }
     }
     return res;

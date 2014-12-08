@@ -13,7 +13,9 @@ public:
     static float splitRotateChange;
     static float minimumRoomArea;
     static float minimumWallLength;
-
+    static float minimumHalfCircleLength;
+    static float minimumHalfCircleChange;
+    static int minimumHalfCircleMaxIter;
 };
 
 

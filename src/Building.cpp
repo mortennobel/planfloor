@@ -22,6 +22,37 @@ void Building::createGeometry(std::vector<glm::vec3>& positions, std::vector<uns
     }
 }
 
+// http://stackoverflow.com/a/1968345/420250
+// Returns 1 if the lines intersect, otherwise 0. In addition, if the lines
+// intersect the intersection point may be stored in the floats i_x and i_y.
+bool getLineIntersection(vec2 p0, vec2 p1, vec2 p2, vec2 p3, vec2 *i = nullptr)
+{
+    float s1_x, s1_y, s2_x, s2_y;
+    s1_x = p1.x - p0.x;     s1_y = p1.y - p0.y;
+    s2_x = p3.x - p2.x;     s2_y = p3.y - p2.y;
+
+    float s, t;
+    s = (-s1_y * (p0.x - p2.x) + s1_x * (p0.y - p2.y)) / (-s2_x * s1_y + s1_x * s2_y);
+    t = ( s2_x * (p0.y - p2.y) - s2_y * (p0.x - p2.x)) / (-s2_x * s1_y + s1_x * s2_y);
+
+    if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+    {
+        // Collision detected
+
+        if (i != nullptr){
+            i->x = p0.x + (t * s1_x);
+            i->y = p0.y + (t * s1_y);
+        }
+        return true;
+    }
+
+    return false; // No collision
+}
+
+bool getLineIntersection(Halfedge *he, vec2 p2, vec2 p3, vec2 *i = nullptr){
+    return getLineIntersection((vec2) he->prev->vert->position, (vec2) he->vert->position, p2, p3, i);
+}
+
 void Building::build() {
     hmesh.clear();
 
@@ -29,7 +60,14 @@ void Building::build() {
 
     int numberOfSubdivides = rnd->nextInt(0, 50);
     for (int i = numberOfSubdivides; i > 0; i--){
-        subdivide();
+        if (rnd->next() < Parameters::minimumHalfCircleChange){
+            auto vertices = hmesh.vertices();
+            int rndPos = rnd->nextInt(0,hmesh.vertexCount()-1);
+            halfcircle(vertices.at(rndPos));
+        } else {
+            subdivide();
+        }
+
     }
 
     convertHMeshToRooms();
@@ -198,6 +236,65 @@ void Building::doorsAndWindows() {
 
 }
 
+
+void Building::halfcircle(Vertex* vertex){
+    bool boundary = vertex->halfedge->isBoundary();
+    if (!boundary && vertex->halfedge->opp->next->opp != vertex->halfedge){
+        return;
+    }
+    auto first = vertex->halfedge->prev;
+    auto last = vertex->halfedge;
+    float minLength = 0.8f*std::min(first->length(),last->length());
+    if (minLength < Parameters::minimumHalfCircleLength){
+        return;
+    }
+
+    if (dot(first->direction(),last->direction())>0.01f){
+        return;
+    }
+
+    vec3 firstPos = normalize(first->direction())*-minLength + vertex->position;
+    vec3 lastPos = normalize(last->direction())* minLength + vertex->position;
+    vec3 centerPosition = ((firstPos + lastPos)*0.5f-vertex->position)*2.0f +vertex->position;
+
+    // test for intersections
+    vec3 firstPosOffset = lerp(firstPos, centerPosition, 0.01f);
+    vec3 lastPosOffset = lerp(lastPos, centerPosition, 0.01f);
+    for (auto he : hmesh.halfedgesSingleSide()){
+        if (getLineIntersection(he, (vec2)firstPosOffset, (vec2)centerPosition)
+                || getLineIntersection(he, (vec2)lastPosOffset, (vec2)centerPosition)){
+            return;
+        }
+    }
+
+
+    first->split()->position = firstPos;
+    last->split()->position = lastPos;
+
+    vector<Halfedge*> heToSplit;
+    vector<Vertex*> newVertices;
+    newVertices.push_back(vertex);
+    heToSplit.push_back(vertex->halfedge->prev);
+    heToSplit.push_back(vertex->halfedge);
+
+    int maxIter = rnd->nextInt(0, Parameters::minimumHalfCircleMaxIter);
+    for (int i=0;i< maxIter;i++){
+        vector<Halfedge*> heNew;
+        for (auto he:heToSplit){
+            auto v = he->split();
+            newVertices.push_back(v);
+            heNew.push_back(he->prev);
+        }
+        for (auto he:heNew){
+            heToSplit.push_back(he);
+        }
+    }
+
+    // fit to curve
+    for (auto v : newVertices){
+        v->position = centerPosition + normalize(v->position - centerPosition)*minLength;
+    }
+}
 
 
 void Building::buidOuterwalls() {

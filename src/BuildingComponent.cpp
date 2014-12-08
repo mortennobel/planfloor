@@ -13,7 +13,6 @@ void BuildingComponent::update() {
     if (MouseInput::down(0)){
         updateMesh();
     }
-
 }
 
 void BuildingComponent::updateMesh() {

@@ -8,3 +8,6 @@ float Parameters::splitRoomChange = 0.75f;
 float Parameters::splitRotateChange = 0.1f;
 float Parameters::minimumRoomArea = 100*400; // 4 sqr meter
 float Parameters::minimumWallLength = 200.0f;
+float Parameters::minimumHalfCircleLength = 300.0f;
+float Parameters::minimumHalfCircleChange = 0.1f;
+int Parameters::minimumHalfCircleMaxIter = 5;

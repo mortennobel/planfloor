@@ -35,6 +35,9 @@ private:
     // split the room using two or more line segments
     void cut();
 
+    //
+    void halfcircle(Vertex* vertex);
+
     void doorsAndWindows();
 
     // return true if the a new wall intersect the any of the existing lines
