@@ -12,6 +12,7 @@
 #import "BuildingFactory.h"
 #import "ColorScheme.h"
 #import "BuildingComponent.h"
+#import "CameraUpdater.h"
 
 using namespace kick;
 
@@ -20,6 +21,9 @@ int main(int argc, char * argv[])
     Engine::init(argc, argv);
     auto scene = Engine::activeScene();
     auto camera = scene->createOrthographicCamera();
+    camera->gameObject()->addComponent<CameraUpdater>(camera);
+
+
     camera->setClearColor(ColorScheme::backgroundColor);
 
     scene->createDirectionalLight();
