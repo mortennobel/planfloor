@@ -10,7 +10,7 @@ using namespace kick;
 using namespace std;
 
 void BuildingComponent::update() {
-    if (MouseInput::down(0)){
+    if (MouseInput::pressed(0)){
         updateMesh();
     }
 }

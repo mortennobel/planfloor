@@ -13,6 +13,7 @@
 #import "ColorScheme.h"
 #import "BuildingComponent.h"
 #import "CameraUpdater.h"
+#include "Export.h"
 
 using namespace kick;
 
@@ -23,7 +24,6 @@ int main(int argc, char * argv[])
     auto camera = scene->createOrthographicCamera();
     camera->gameObject()->addComponent<CameraUpdater>(camera);
 
-
     camera->setClearColor(ColorScheme::backgroundColor);
 
     scene->createDirectionalLight();
@@ -33,6 +33,7 @@ int main(int argc, char * argv[])
     MeshRenderer *meshRenderer = gameObject->addComponent<MeshRenderer>();
     auto mesh = std::make_shared<Mesh>();
     gameObject->addComponent<BuildingComponent>(mesh);
+    gameObject->addComponent<Export>(mesh);
     meshRenderer->setMesh(mesh);
 
     auto shader = Project::loadShader("assets/shaders/unlit.shader");
@@ -45,6 +46,7 @@ int main(int argc, char * argv[])
     cube->transform()->setLocalScale({100.0f/2,100.0f/2,1.0f});
     cube->transform()->setLocalPosition({300,-250,0});
     cube->setMaterial(mat);
+
 
 
     Engine::startMainLoop();
